@@ -1,0 +1,224 @@
+---
+title: "Programming for Data Science 1"
+author: "affandry taufik"
+date: "2023-02-04"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: true
+    df_print: paged
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+elips <- read.csv("datainput/retail.csv")
+head(elips)
+```
+
+```{r}
+tail(elips)
+```
+
+```{r}
+dim(elips)
+```
+```{r}
+names(elips)
+```
+
+```{r}
+str(elips)
+```
+
+## Change data types
+
+```{r}
+elips$Row.ID <- as.character(elips$Row.ID)
+elips$Order.ID <- as.character(elips$Order.ID)
+elips$Order.Date <- as.Date(elips$Order.Date,"%m/%d/%y")
+elips$Ship.Date <- as.Date(elips$Ship.Date,"%m/%d/%y")
+elips$Customer.ID <- as.character(elips$Customer.ID)
+elips$Product.ID <- as.character(elips$Product.ID)
+elips$Product.Name <- as.character(elips$Product.Name)
+elips$Ship.Mode <- as.factor(elips$Ship.Mode)
+elips$Segment <- as.factor(elips$Segment)
+elips$Category <- as.factor(elips$Category)
+elips$Sub.Category <- as.factor(elips$Sub.Category)
+
+str(elips)
+```
+
+## Cek kelengkapan data
+
+```{r}
+colSums(is.na(elips))
+```
+
+```{r}
+anyNA(elips)
+```
+```{r}
+Elips <- elips[,c(3:15)]
+head(Elips)
+```
+
+```{r}
+summary(Elips)
+```
+```{r}
+sum(Elips$Quantity)
+sum(Elips$Profit)
+```
+
+Initial order date is on 3/1/2014 and the first delivery is on 7/1/2014. Classes with the highest to lowest number of delivery, consecutively, are Standard Class, Second Class, First Class, and Same Day. Product Segment with the highest number of orders/purchases is Consumer Goods, followed with Corporate Goods and Home Office Goods. Categories of goods most purchased from highest to lowest are Office Supply, Furniture, and Technology. The most purchased goods are of the sub-category of Binders, followed by Paper, and Furnishing. The total number of sales is at 37873. The maximum sales is at 22638.4; minimum at 0.4, with an average sales of 229.858. Maximum Quantity is at 14; minimum at 1, with an average of 3.79. Maximum discount rate is set at 80% with an average of 20%. Maximum profit reaches 8399.9 with a minimum profit at -6599.9, yielding an average profit of 28.65. The total profit sums up to 286397.  
+
+```{r}
+aggregate(Elips$Profit~Elips$Segment,Elips,mean)
+```
+
+```{r}
+aggregate(Elips$Profit~Elips$Segment,Elips,var)
+```
+
+```{r}
+aggregate(Elips$Profit~Elips$Segment,Elips,sd)
+```
+
+```{r}
+boxplot(Elips$Profit)
+```
+
+```{r}
+Elips[Elips$Sales== min(Elips$Sales),]
+```
+
+Lowest sales in the Consumer segment comes from Office Supplies in which the profit ratio is at 1.11.
+
+```{r}
+os <- Elips[Elips$Category == "Office Supplies",]
+round(prop.table(table(os$Segment))*100,2)
+```
+
+Highest number of buyers of Office Supplies come from the Consumer segment
+
+```{r}
+dis <- Elips[Elips$Discount == max(Elips$Discount),]
+dis_date <- sort(table(dis$Order.Date),decreasing = T)[1]
+dis_date
+
+```
+
+An 80% Discount occurs 4 times in July 2014.
+
+```{r}
+dis2 <- dis[dis$Order.Date == "2014-07-26",]
+table(dis2$Segment)
+```
+
+Buyers of 80%-discounted goods are consumers.
+
+```{r}
+xtabs(Quantity~Segment+Category,Elips)
+```
+
+```{r}
+heatmap(xtabs(Quantity~Segment+Category,Elips),cexRow = 0.8,cexCol = 0.8,scale = "column",Colv = NA, Rowv = NA)
+
+```
+
+```{r}
+aggregate(Quantity~Segment+Category,Elips,median)
+
+```
+
+```{r}
+sum(Elips$Quantity)
+```
+```{r}
+sum(Elips$Profit)
+```
+```{r}
+nol <-  Elips[Elips$Discount == 0,]
+knitr::kable(table(nol$Discount))
+```
+
+```{r}
+More0 <- Elips[Elips$Discount > 0 & Elips$Discount <=0.8,]
+knitr::kable(table(More0$Discount))
+```
+
+```{r}
+sort(xtabs(Profit~Category,Elips),decreasing = T)
+```
+
+The most profitable category is Technology.
+
+```{r}
+Elips[Elips$Profit== min(Elips$Profit),]
+```
+
+The biggest loss occurs on order date 2016-11-26 in which 5 items of Technology-Maxhines-Cubify CubeX 3D Printer Double Head Print are discounted 70%.
+
+```{r}
+sort(xtabs(Profit ~ Segment, Elips),decreasing = T)
+```
+
+Profit based on segment is consumer.
+
+```{r}
+sort(xtabs(Sales ~ Category, Elips),decreasing = T)
+```
+
+Highest selling price / highest selling margin of goods is Technology.
+
+```{r}
+xtabs(Profit ~ Segment+Ship.Mode,Elips)
+```
+```{r}
+plot(xtabs(Profit ~ Segment+Ship.Mode,Elips))
+```
+
+Every segment prefers delivery by Standard Class the most, followed by Second Class, First Class, and Same Day, and consumer provides the highest profit.
+
+```{r}
+sort(xtabs(Quantity ~ Category, Elips),decreasing=T)
+```
+
+
+Based on item sold, office supply was the highest folloewd by furniture and technology
+
+```{r}
+Tech_Category <- Elips[Elips$Category == "Technology",]
+Off_Sup_Category <- Elips[Elips$Category == "Office Supplies",]
+Furniture_Category <- Elips[Elips$Category == "Furniture",]
+```
+
+```{r}
+sum(Tech_Category$Profit)
+sum(Off_Sup_Category$Profit)
+sum(Furniture_Category$Profit)
+```
+```{r}
+cor(Tech_Category$Quantity,Tech_Category$Discount)
+cor(Tech_Category$Profit,Tech_Category$Discount)
+
+```
+
+The number of purchases on goods of the Technology category has a contrast correlation toward discounts, which means that discounts do not contribute to sales of Technology goods.
+
+The profit of Technology is inversely proportional to discounts, meaning that discounts contribute negatively towards profit of the sales of Technology goods.
+
+## Conslusion
+since PT. Elips started their company to sell Furniture, Office supplies and Technology goods in 2014 to 2017, there were 9994 transaction recorded, sold 37873 items. Buyer from this company derived in three segment, they were onsumer, Corporate and Home Office. Based on all transaction transaction we can conclude that product categorty that oftenly brought was consumer goods followed by Corporate goods then Home office, where Office supply goods found highly consumed then followed by Furniture and Technology goods. Binders, paper and furnishing are the top three item consumed from office supply. Office supply buyer mostly came from Consumer . Shipping mode that usually used for each segment was standard class followed by second class, first class then same day. Maximum sales achieved per single transaction was 22638.4 and maximum quantity sold per single transaction was 14 but oftenly 3 items per transaction. Margin of product profit maximum per transaction was 8399.9, and the average was 28.65. Among those three category, technoloy given high margin, but due to high discount about 80% from technoloy caused a big loss about -6599.9. 
+
+## Way Forward
+1. high discount should suitable for consumer goods for consumer segment buyer, and not suitable or will give loss if given to technology product. Because mostly profit comes from consumer goods and home office goods, altough given small margin but consumer items sold in big scale.
+2. Dicount will improve sales for Corporate segment and home office segment market, to support that prepare extra supply to accomodate high sales. 
+
